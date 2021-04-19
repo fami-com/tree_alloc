@@ -55,3 +55,10 @@ dkms.conf
 
 cmake-build-*
 **/.idea
+
+*.cmake
+CMakeCache.txt
+Makefile
+**/CMakeFiles
+
+alloc

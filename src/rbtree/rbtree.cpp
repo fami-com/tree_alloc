@@ -316,11 +316,12 @@ Node *search_fitting(Tree *tree, size_t value) {
     if (tree->root == nullptr)
         return nullptr;
 
-    struct Node *z = tree->root;
-    struct Node *res = nullptr;
+    Node *z = tree->root;
+    Node *res = nullptr;
 
     while (!is_rbnil(z))
     {
+        // ERRORS, INVALID ALIGNMENT
         if (z->value == value)
             return z;
 

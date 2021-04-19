@@ -10,7 +10,9 @@ struct Arena *Arena::create(size_t size, struct Tree *tree) {
         size = 1;
     }
 
-    size = align_to(size + Arena::STSIZE, get_page_size());
+    errno = 0;
+
+    size = align_to(size + Arena::STSIZE + Header::STSIZE, get_page_size());
 
     if(errno == ERANGE){
         return nullptr;
@@ -18,13 +20,13 @@ struct Arena *Arena::create(size_t size, struct Tree *tree) {
 
     auto data = pialloc(size);
 
-    if (!data) {
+    if (data == nullptr) {
         return nullptr;
     }
 
     auto ptr = new(data) Arena(size - Arena::STSIZE);
 
-    new(ptr->get_first_header()) Header(ptr->size - Header::STSIZE, 0, true, true, tree);
+    new(ptr->get_first_header()) Header(ptr->size - Header::STSIZE, 0, true, tree);
 
     return ptr;
 }
@@ -38,9 +40,12 @@ Header *Arena::get_first_header() {
 }
 
 Arena *Arena::from_header(Header *header) {
-    for (; header->get_prev(); header = header->get_prev());
+    while(header->get_prev() != nullptr) {
+        header = header->get_prev();
+    }
 
-    return (struct Arena *) ((char *) header - Arena::STSIZE);
+    auto a = (Arena *) ((char *) header - Arena::STSIZE);
+    return a;
 }
 
 Arena::Arena(size_t size) {

@@ -1,4 +1,5 @@
 #include <new>
+#include <cstdio>
 
 #include "header.h"
 #include "mem/pimem.h"
@@ -30,7 +31,7 @@ void *Header::get_next_uninit() {
 }
 
 Header *Header::get_prev() {
-    if (m_flags.first) {
+    if (m_lsize == 0) {
         return nullptr;
     }
 
@@ -70,35 +71,33 @@ bool Header::is_free() const {
 }
 
 Header *Header::merge_right(struct Tree *tree) {
-    if (auto nxt = get_next(); nxt && nxt->is_free()) {
+    if (auto onxt = get_next(); onxt != nullptr && onxt->is_free()) {
+        auto fin = onxt->is_final();
 
-        auto fin = nxt->is_final();
-        auto fst = is_first();
-
-        auto sz = get_size();
-        auto nxt_sz = nxt->get_size();
-
-        if (sz >= Node::STSIZE) {
+        if (get_size() >= Node::STSIZE) {
             remove_item(tree, get_node_ptr());
         }
 
-        if (nxt_sz >= Node::STSIZE) {
-            remove_item(tree, nxt->get_node_ptr());
+        if (onxt->get_size() >= Node::STSIZE) {
+            remove_item(tree, onxt->get_node_ptr());
         }
 
-        sz += nxt_sz + Header::STSIZE;
-        set_size(sz);
-
-        if (auto nxt2 = get_next()) {
-            nxt2->set_lsize(sz);
-        }
-
-        if (sz >= Node::STSIZE) {
-            insert_item(tree, init_node(get_node_ptr(), sz));
-        }
+        set_size(get_size() + onxt->get_size() + Header::STSIZE);
 
         set_final(fin);
-        set_first(fst);
+
+        if (auto nxt = get_next(); nxt != nullptr) {
+            nxt->set_lsize(get_size());
+        }
+
+        /*if (get_prev(header)) {
+            set_next(get_prev(header), header);
+        }*/
+
+        if (get_size() >= Node::STSIZE) {
+            mark_free(tree);
+            //insert_item(tree, init_node(get_node_ptr(), get_size()));
+        }
     }
 
     return this;
@@ -106,17 +105,16 @@ Header *Header::merge_right(struct Tree *tree) {
 
 Header *Header::merge_left(Tree *tree) {
     auto header = this;
-    if (auto prev = get_prev(); prev && prev->is_free()) {
+    if (auto prev = get_prev(); prev != nullptr && prev->is_free()) {
         header = prev->merge_right(tree);
     }
 
     return header;
 }
 
-Header::Header(size_t size, size_t lsize, bool first, bool final, Tree *tree) {
+Header::Header(size_t size, size_t lsize, bool final, Tree *tree) {
     m_size = size;
     m_lsize = lsize;
-    m_flags.first = first;
     m_flags.final = final;
     mark_free(tree);
 }
@@ -125,8 +123,12 @@ bool Header::split_header(size_t new_size, Tree *tree) {
     new_size = align(new_size);
     auto sz = get_size();
 
+    auto next_size = sz - new_size - Header::STSIZE;
+    if(next_size > sz){
+        next_size = 0;
+    }
+
     auto fin = is_final();
-    auto fst = is_first();
 
     if (sz <= new_size) {
         return false;
@@ -137,7 +139,8 @@ bool Header::split_header(size_t new_size, Tree *tree) {
     }
 
     if (is_free() && sz >= Node::STSIZE) {
-        remove_item(tree, get_node_ptr());
+        auto t = get_node_ptr();
+        remove_item(tree, t);
     }
 
     set_size(new_size);
@@ -148,16 +151,15 @@ bool Header::split_header(size_t new_size, Tree *tree) {
 
     auto ptr = get_next_uninit();
 
-    auto new_header = new(ptr) Header(sz - new_size - Header::STSIZE, new_size, false, fin, tree);
+    auto new_header = new(ptr) Header(next_size, new_size, fin, tree);
 
-    if (auto nxt2 = new_header->get_next()) {
+    set_final(false);
+
+    if (auto nxt2 = new_header->get_next(); nxt2 != nullptr) {
         nxt2->set_lsize(new_header->get_size());
     }
 
-    new_header->mark_free(tree);
-    new_header->set_final(fin);
-
-    set_first(fst);
+    //new_header->mark_free(tree);
 
     return true;
 }
@@ -167,15 +169,11 @@ Header *Header::from_node(Node *node) {
 }
 
 bool Header::is_first() const {
-    return m_flags.first;
+    return m_lsize == 0;
 }
 
 bool Header::is_final() const {
     return m_flags.final;
-}
-
-void Header::set_first(bool v) {
-    m_flags.first = v;
 }
 
 void Header::set_final(bool v) {

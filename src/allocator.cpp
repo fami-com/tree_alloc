@@ -9,7 +9,7 @@
 #include "mem/pimem.h"
 #include "rbtree/rbtree.h"
 
-static struct Tree tree_head {.root = nullptr};
+static Tree tree_head {.root = nullptr};
 
 void *mem_alloc(size_t size) {
     if(size == 0) {
@@ -31,9 +31,9 @@ void *mem_alloc(size_t size) {
     if (node) {
         header = Header::from_node(node);
     } else {
-        arena = Arena::create(size + Header::STSIZE, &tree_head);
+        arena = Arena::create(size, &tree_head);
 
-        if (!arena) {
+        if (arena == nullptr) {
             return nullptr;
         }
 
@@ -47,19 +47,15 @@ void *mem_alloc(size_t size) {
     if (sz == size) {
         header->mark_reserved(&tree_head);
         ret_ptr = header->get_body_ptr();
-    }
-
-    if (sz > size) {
+    } else if (sz > size) {
         header->split_header(size, &tree_head);
 
         header->mark_reserved(&tree_head);
         ret_ptr = header->get_body_ptr();
     }
 
-    header->mark_reserved(&tree_head);
+    //header->mark_reserved(&tree_head);
     ret_ptr = header->get_body_ptr();
-
-    printf("Allocating at %p\n", ret_ptr);
 
     return ret_ptr;
 }
@@ -90,25 +86,20 @@ void *mem_realloc(void *ptr, size_t new_size) {
     errno = 0;
     new_size = align(new_size);
 
-    // C11, 7.22.3.5 If memory for the new object cannot be allocated,
-    // the old object is not deallocated and its value is unchanged.
     if (errno == ERANGE){
         return nullptr;
     }
 
-    // C11, 7.22.3.5 If ptr is a null pointer, the realloc function behaves like
-    // the malloc function for the specified size.
-    if (!ptr) {
+    if (ptr == nullptr) {
         return mem_alloc(new_size);
     }
 
-    auto *old_header = Header::from_body(ptr);
-
     if (new_size == 0) {
         mem_free(ptr);
-        return mem_alloc(0);
+        return nullptr;
     }
 
+    auto *old_header = Header::from_body(ptr);
     auto old_size = old_header->get_size();
 
     if (old_size > new_size) {

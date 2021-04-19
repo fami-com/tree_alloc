@@ -13,13 +13,12 @@ class Header {
     struct Flags {
         bool free: 1;
         bool final: 1;
-        bool first: 1;
     } m_flags;
 
 public:
     static const size_t STSIZE;
 
-    Header(size_t size, size_t lsize, bool first, bool final, Tree *tree);
+    Header(size_t size, size_t lsize, bool final, Tree *tree);
 
     void *get_body_ptr();
 
@@ -52,8 +51,6 @@ public:
     void mark_free(Tree *tree);
 
     void mark_reserved(Tree *tree);
-
-    void set_first(bool v);
 
     void set_final(bool v);
 

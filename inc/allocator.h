@@ -1,7 +1,7 @@
 #ifndef ALLOC_ALLOCATOR_H
 #define ALLOC_ALLOCATOR_H
 
-#include <cstddef>
+#include <stddef.h>
 
 void *mem_alloc(size_t size);
 
