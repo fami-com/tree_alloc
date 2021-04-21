@@ -13,7 +13,7 @@ static std::random_device rd;
 static std::mt19937 mt;
 
 void fill_rand(void *ptr, size_t size) noexcept {
-    auto cptr = static_cast<char*>(ptr);
+    auto cptr = static_cast<char *>(ptr);
     for (size_t i = 0; i < size; i++) {
         *cptr++ = static_cast<char>(mt());
     }
@@ -22,9 +22,9 @@ void fill_rand(void *ptr, size_t size) noexcept {
 unsigned int get_checksum(void *ptr, size_t size) noexcept {
     unsigned sum = 0;
     for (size_t i = 0; i < size; i++) {
-        char v = *(static_cast<char*>(ptr) + i);
+        char v = *(static_cast<char *>(ptr) + i);
         // boost hash function
-        sum ^= std::hash<char>()(v) + 0x9e3779b9 + (sum<<6) + (sum>>2);
+        sum ^= std::hash<char>()(v) + 0x9e3779b9 + (sum << 6) + (sum >> 2);
     }
     return sum;
 }
@@ -46,7 +46,7 @@ void test(size_t max_size, unsigned N) noexcept {
 
         if (i % N / 100 == 0) {
             printf("%02u%%\r", i);
-            fflush (stdout);
+            fflush(stdout);
         }
 
         switch (action) {
@@ -108,7 +108,7 @@ void test(size_t max_size, unsigned N) noexcept {
         }
     }
 
-    for (unsigned i = 0;i < ARRAY_SIZE;i++) {
+    for (unsigned i = 0; i < ARRAY_SIZE; i++) {
         assert(get_checksum(results[i].addr, results[i].size) == results[i].checksum && "bad checksum");
         mem_free(results[i].addr);
     }

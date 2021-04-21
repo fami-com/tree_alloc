@@ -6,51 +6,51 @@
 
 const size_t Header::STSIZE = aligned_sizeof<Header>();
 
-void *Header::get_body_ptr() {
-    return reinterpret_cast<char*>(this) + Header::STSIZE;
+void *Header::get_body_ptr() noexcept {
+    return reinterpret_cast<char *>(this) + Header::STSIZE;
 }
 
-Node *Header::get_node_ptr() {
-    return reinterpret_cast<Node*>(reinterpret_cast<char*>(this) + Header::STSIZE);
+Node *Header::get_node_ptr() noexcept {
+    return reinterpret_cast<Node *>(reinterpret_cast<char *>(this) + Header::STSIZE);
 }
 
-Header *Header::from_body(void *body) {
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(body) - Header::STSIZE);
+Header *Header::from_body(void *body) noexcept {
+    return reinterpret_cast<Header *>(reinterpret_cast<char *>(body) - Header::STSIZE);
 }
 
-Header *Header::get_next() {
+Header *Header::get_next() noexcept {
     if (m_flags.final) {
         return nullptr;
     }
 
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) + m_size + Header::STSIZE);
+    return reinterpret_cast<Header *>(reinterpret_cast<char *>(this) + m_size + Header::STSIZE);
 }
 
-void *Header::get_next_uninit() {
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) + m_size + Header::STSIZE);
+void *Header::get_next_uninit() noexcept {
+    return reinterpret_cast<Header *>(reinterpret_cast<char *>(this) + m_size + Header::STSIZE);
 }
 
-Header *Header::get_prev() {
+Header *Header::get_prev() noexcept {
     if (m_lsize == 0) {
         return nullptr;
     }
 
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) - m_lsize - Header::STSIZE);
+    return reinterpret_cast<Header *>(reinterpret_cast<char *>(this) - m_lsize - Header::STSIZE);
 }
 
-void Header::set_lsize(size_t new_lsize) {
+void Header::set_lsize(size_t new_lsize) noexcept {
     m_lsize = new_lsize;
 }
 
-size_t Header::get_size() const {
+size_t Header::get_size() const noexcept {
     return m_size;
 }
 
-void Header::set_size(size_t size) {
+void Header::set_size(size_t size) noexcept {
     m_size = size;
 }
 
-void Header::mark_free(Tree *tree) {
+void Header::mark_free(Tree *tree) noexcept {
     if (auto sz = get_size(); sz >= Node::STSIZE) {
         insert_item(tree, init_node(get_node_ptr(), sz));
     }
@@ -58,7 +58,7 @@ void Header::mark_free(Tree *tree) {
     m_flags.free = true;
 }
 
-void Header::mark_reserved(Tree *tree) {
+void Header::mark_reserved(Tree *tree) noexcept {
     if (auto sz = get_size(); sz >= Node::STSIZE) {
         remove_item(tree, get_node_ptr());
     }
@@ -66,11 +66,11 @@ void Header::mark_reserved(Tree *tree) {
     m_flags.free = false;
 }
 
-bool Header::is_free() const {
+bool Header::is_free() const noexcept {
     return m_flags.free;
 }
 
-Header *Header::merge_right(struct Tree *tree) {
+Header *Header::merge_right(struct Tree *tree) noexcept {
     if (auto onxt = get_next(); onxt != nullptr && onxt->is_free()) {
         auto fin = onxt->is_final();
         auto fre = is_free();
@@ -100,7 +100,7 @@ Header *Header::merge_right(struct Tree *tree) {
     return this;
 }
 
-Header *Header::merge_left(Tree *tree) {
+Header *Header::merge_left(Tree *tree) noexcept {
     auto header = this;
     if (auto prev = get_prev(); prev != nullptr && prev->is_free()) {
         header = prev->merge_right(tree);
@@ -109,19 +109,19 @@ Header *Header::merge_left(Tree *tree) {
     return header;
 }
 
-Header::Header(size_t size, size_t lsize, bool final, Tree *tree) {
+Header::Header(size_t size, size_t lsize, bool final, Tree *tree) noexcept {
     m_size = size;
     m_lsize = lsize;
     m_flags.final = final;
     mark_free(tree);
 }
 
-bool Header::split(size_t new_size, Tree *tree) {
+bool Header::split(size_t new_size, Tree *tree) noexcept {
     new_size = align(new_size);
     auto sz = get_size();
 
     auto next_size = sz - new_size - Header::STSIZE;
-    if(next_size > sz){
+    if (next_size > sz) {
         next_size = 0;
     }
 
@@ -142,7 +142,7 @@ bool Header::split(size_t new_size, Tree *tree) {
 
     set_size(new_size);
 
-    if (is_free()){
+    if (is_free()) {
         mark_free(tree);
     }
 
@@ -161,19 +161,19 @@ bool Header::split(size_t new_size, Tree *tree) {
     return true;
 }
 
-Header *Header::from_node(Node *node) {
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(node) - Header::STSIZE);
+Header *Header::from_node(Node *node) noexcept {
+    return reinterpret_cast<Header *>(reinterpret_cast<char *>(node) - Header::STSIZE);
 }
 
-bool Header::is_first() const {
+bool Header::is_first() const noexcept {
     return m_lsize == 0;
 }
 
-bool Header::is_final() const {
+bool Header::is_final() const noexcept {
     return m_flags.final;
 }
 
-void Header::set_final(bool v) {
+void Header::set_final(bool v) noexcept {
     m_flags.final = v;
 }
 

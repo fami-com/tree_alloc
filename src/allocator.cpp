@@ -9,17 +9,17 @@
 #include "mem/pimem.h"
 #include "rbtree/rbtree.h"
 
-static Tree tree_head {.root = nullptr};
+static Tree tree_head{.root = nullptr};
 
-void *mem_alloc(size_t size) {
-    if(size == 0) {
+void *mem_alloc(size_t size) noexcept {
+    if (size == 0) {
         return nullptr;
     }
 
     errno = 0;
     size = align(size);
 
-    if(errno == ERANGE) {
+    if (errno == ERANGE) {
         return nullptr;
     }
 
@@ -54,7 +54,7 @@ void *mem_alloc(size_t size) {
     return ret_ptr;
 }
 
-void mem_free(void *ptr) {
+void mem_free(void *ptr) noexcept {
     // C11, 7.22.3.3 If ptr is a null pointer, no action occurs.
     if (ptr == nullptr) {
         return;
@@ -76,11 +76,11 @@ void mem_free(void *ptr) {
     }
 }
 
-void *mem_realloc(void *ptr, size_t new_size) {
+void *mem_realloc(void *ptr, size_t new_size) noexcept {
     errno = 0;
     new_size = align(new_size);
 
-    if (errno == ERANGE){
+    if (errno == ERANGE) {
         return nullptr;
     }
 
@@ -101,7 +101,8 @@ void *mem_realloc(void *ptr, size_t new_size) {
         return ptr;
     }
 
-    if(auto next = old_header->get_next(); next != nullptr && next->is_free() && next->get_size() + old_size >= new_size) {
+    if (auto next = old_header->get_next(); next != nullptr && next->is_free() &&
+                                            next->get_size() + old_size >= new_size) {
         old_header->merge_right(&tree_head);
         old_header->split(new_size, &tree_head);
         return ptr;
@@ -109,7 +110,8 @@ void *mem_realloc(void *ptr, size_t new_size) {
 
     void *new_ptr;
 
-    if(auto prev = old_header->get_prev(); prev != nullptr && prev->is_free() && prev->get_size() + old_size >= new_size) {
+    if (auto prev = old_header->get_prev(); prev != nullptr && prev->is_free() &&
+                                            prev->get_size() + old_size >= new_size) {
         auto hdr = old_header->merge_left(&tree_head);
         hdr->split(new_size, &tree_head);
 
@@ -125,7 +127,7 @@ void *mem_realloc(void *ptr, size_t new_size) {
     return new_ptr;
 }
 
-void mem_dump() {
+void mem_dump() noexcept {
     printf("Page m_size: %zu\n", get_page_size());
 
     print_tree(&tree_head);

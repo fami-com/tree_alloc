@@ -3,13 +3,13 @@
 
 #include <stddef.h>
 
-void *mem_alloc(size_t size);
+void *mem_alloc(size_t size) noexcept;
 
-void mem_free(void *ptr);
+void mem_free(void *ptr) noexcept;
 
-void *mem_realloc(void *ptr, size_t new_size);
+void *mem_realloc(void *ptr, size_t new_size) noexcept;
 
-void mem_dump();
+void mem_dump() noexcept;
 
 #endif //ALLOC_ALLOCATOR_H
 

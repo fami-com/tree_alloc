@@ -18,7 +18,8 @@ bool is_rbnil(Node *node) noexcept {
     return node == &NODENIL;
 }
 
-Node *init_node(Node *node_place, size_t value) noexcept {\
+Node *init_node(Node *node_place, size_t value) noexcept {
+    \
     *node_place = {
             .color = BLACK,
             .parent = &NODENIL,
@@ -322,8 +323,7 @@ Node *search_fitting(Tree *tree, size_t value) noexcept {
     Node *z = tree->root;
     Node *res = nullptr;
 
-    while (!is_rbnil(z))
-    {
+    while (!is_rbnil(z)) {
         // ERRORS, INVALID ALIGNMENT
         if (z->value == value)
             return z;

@@ -23,7 +23,7 @@ struct Node {
     static const size_t STSIZE;
 };
 
-static Node NODENIL {
+static Node NODENIL{
         .color = BLACK,
         .parent = &NODENIL,
         .left = &NODENIL,

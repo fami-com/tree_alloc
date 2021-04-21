@@ -9,7 +9,7 @@ static size_t page_size;
 void *pialloc(size_t size) {
     auto ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    if(ptr == MAP_FAILED){
+    if (ptr == MAP_FAILED) {
         return nullptr;
     }
 
@@ -17,7 +17,7 @@ void *pialloc(size_t size) {
 }
 
 void pifree(void *ptr) {
-    munmap(ptr, static_cast<Arena*>(ptr)->size);
+    munmap(ptr, static_cast<Arena *>(ptr)->size);
 }
 
 size_t get_page_size() {

@@ -8,14 +8,14 @@
 
 const size_t Arena::STSIZE = aligned_sizeof<Arena>();
 
-struct Arena *Arena::create(size_t size, struct Tree *tree) {
+struct Arena *Arena::create(size_t size, struct Tree *tree) noexcept {
     if (size == 0) {
         size = 1;
     }
 
     auto sum = size + Arena::STSIZE + Header::STSIZE;
 
-    if (sum < size){
+    if (sum < size) {
         return nullptr;
     }
 
@@ -23,7 +23,7 @@ struct Arena *Arena::create(size_t size, struct Tree *tree) {
 
     size = align_to(sum, get_page_size());
 
-    if(errno == ERANGE){
+    if (errno == ERANGE) {
         return nullptr;
     }
 
@@ -46,19 +46,19 @@ void Arena::operator delete(void *ptr) noexcept {
     pifree(ptr);
 }
 
-Header *Arena::get_first_header() {
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) + Arena::STSIZE);
+Header *Arena::get_first_header() noexcept {
+    return reinterpret_cast<Header *>(reinterpret_cast<char *>(this) + Arena::STSIZE);
 }
 
-Arena *Arena::from_header(Header *header) {
-    while(header->get_prev() != nullptr) {
+Arena *Arena::from_header(Header *header) noexcept {
+    while (header->get_prev() != nullptr) {
         header = header->get_prev();
     }
 
-    auto a = reinterpret_cast<Arena*>(reinterpret_cast<char*>(header) - Arena::STSIZE);
+    auto a = reinterpret_cast<Arena *>(reinterpret_cast<char *>(header) - Arena::STSIZE);
     return a;
 }
 
-Arena::Arena(size_t new_size) {
+Arena::Arena(size_t new_size) noexcept {
     size = new_size;
 }

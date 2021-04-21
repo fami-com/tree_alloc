@@ -9,16 +9,16 @@ struct Arena {
 
     static const size_t STSIZE;
 
-    static Arena *from_header(Header *header);
+    static Arena *from_header(Header *header) noexcept;
 
-    static Arena* create(size_t size, struct Tree *tree);
+    static Arena *create(size_t size, struct Tree *tree) noexcept;
 
-    void operator delete(void* ptr) noexcept;
+    void operator delete(void *ptr) noexcept;
 
-    Header *get_first_header();
+    Header *get_first_header() noexcept;
 
 private:
-    explicit Arena(size_t size);
+    explicit Arena(size_t size) noexcept;
 };
 
 #endif //ALLOC_ARENA_H
