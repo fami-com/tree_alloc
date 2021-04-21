@@ -23,8 +23,8 @@ void *mem_alloc(size_t size) {
         return nullptr;
     }
 
-    struct Arena *arena;
-    struct Header *header;
+    Arena *arena;
+    Header *header;
 
     auto *node = search_fitting(&tree_head, size);
 
@@ -44,17 +44,11 @@ void *mem_alloc(size_t size) {
 
     void *ret_ptr;
 
-    if (sz == size) {
-        header->mark_reserved(&tree_head);
-        ret_ptr = header->get_body_ptr();
-    } else if (sz > size) {
-        header->split_header(size, &tree_head);
-
-        header->mark_reserved(&tree_head);
-        ret_ptr = header->get_body_ptr();
+    if (sz > size) {
+        header->split(size, &tree_head);
     }
 
-    //header->mark_reserved(&tree_head);
+    header->mark_reserved(&tree_head);
     ret_ptr = header->get_body_ptr();
 
     return ret_ptr;
@@ -99,75 +93,40 @@ void *mem_realloc(void *ptr, size_t new_size) {
         return nullptr;
     }
 
-    auto *old_header = Header::from_body(ptr);
+    auto old_header = Header::from_body(ptr);
     auto old_size = old_header->get_size();
 
     if (old_size > new_size) {
-        old_header->split_header(new_size, &tree_head);
+        old_header->split(new_size, &tree_head);
         return ptr;
     }
 
-    auto new_ptr = mem_alloc(new_size);
+    if(auto next = old_header->get_next(); next != nullptr && next->is_free() && next->get_size() + old_size >= new_size) {
+        old_header->merge_right(&tree_head);
+        old_header->split(new_size, &tree_head);
+        return ptr;
+    }
 
-    auto *new_header = Header::from_body(new_ptr);
-    memmove(new_header->get_body_ptr(), old_header->get_body_ptr(), std::min(old_size, new_size));
+    void *new_ptr;
 
-    mem_free(old_header->get_body_ptr());
+    if(auto prev = old_header->get_prev(); prev != nullptr && prev->is_free() && prev->get_size() + old_size >= new_size) {
+        auto hdr = old_header->merge_left(&tree_head);
+        hdr->split(new_size, &tree_head);
+
+        new_ptr = hdr->get_body_ptr();
+    }
+
+    new_ptr = mem_alloc(new_size);
+
+    memcpy(new_ptr, ptr, std::min(old_size, new_size));
+
+    mem_free(ptr);
 
     return new_ptr;
 }
 
-/// deprecated
 void mem_dump() {
-    //char* addr = (char*)get_first_header(first_arena);
     printf("Page m_size: %zu\n", get_page_size());
-    char *addr;
-    int arena_num = 0;
 
-    size_t total = 0;
-    int total_count = 0;
-
-    size_t total_total = 0;
-    int total_total_count = 0;
-
-    Arena *arena = nullptr;
-
-    /*while (arena) {
-
-        total = 0;
-        total_count = 0;
-
-
-        addr = (char *) arena->get_first_header();
-
-        printf("Arena №%d\nUsed space: %d/%ld\n", ++arena_num, -1, arena->size);
-
-        printf("%15s%15s%8s%15s\n", "ADDR", "FREE", "SIZE", "NEXT_ADDR");
-
-        while (addr) {
-            auto *hdr = (Header*)addr;
-
-            printf((hdr->get_next() ? "%15p%15s%8ld%15p\n" : "%15p%15s%8ld%15s\n"),
-                   addr, hdr->is_free() ? "true" : "false", hdr->get_size(),
-                   (hdr->get_next() ? (char *) (hdr->get_next()) : "END OF MEMORY"));
-            total += hdr->get_size();
-            total_total += hdr->get_size();
-            addr = (char *) hdr->get_next();
-            total_count++;
-            total_total_count++;
-        }
-
-        printf("Results:\n");
-        printf("Total blocks allocated/used: %d\nMemory used by headers: %ld B\nMemory reserved for usage: %ld B\n",
-               total_count,
-               total_count * sizeof(struct Header), total);
-    }*/
-
-    if (arena_num > 1) {
-        printf("\nTotal arenas allocated: %d\nTotal memory used by headers: %ld B\nTotal memory reserved for usage: %zu B\n",
-               arena_num, total_total_count * sizeof(struct Header), total_total);
-    }
-
-    printf("\n");
     print_tree(&tree_head);
 }

@@ -6,18 +6,20 @@
 
 const size_t Node::STSIZE = aligned_sizeof<Node>();
 
-void fix_violation(Tree *tree, Node *z);
+void fix_violation(Tree *tree, Node *z) noexcept;
 
-void rotate_left(Tree *tree, Node *x);
+void rotate_left(Tree *tree, Node *x) noexcept;
 
-void rotate_right(Tree *tree, Node *x);
+void rotate_right(Tree *tree, Node *x) noexcept;
 
-bool is_rbnil(Node *node) {
+bool is_rbnil(Node *node) noexcept;
+
+bool is_rbnil(Node *node) noexcept {
     return node == &NODENIL;
 }
 
-Node *init_node(Node *node_place, size_t value) {\
-    *(Node*)node_place = (struct Node) {
+Node *init_node(Node *node_place, size_t value) noexcept {\
+    *node_place = {
             .color = BLACK,
             .parent = &NODENIL,
             .left = &NODENIL,
@@ -26,10 +28,10 @@ Node *init_node(Node *node_place, size_t value) {\
             .prev = nullptr,
             .value = value,
     };
-    return (Node*)node_place;
+    return node_place;
 }
 
-void insert_item(Tree *tree, struct Node *z) {
+void insert_item(Tree *tree, struct Node *z) noexcept {
     if (tree->root == nullptr) {
         tree->root = z;
         z->color = BLACK;
@@ -69,7 +71,7 @@ void insert_item(Tree *tree, struct Node *z) {
     fix_violation(tree, z);
 }
 
-void transplant(Tree *tree, Node *u, Node *v) {
+void transplant(Tree *tree, Node *u, Node *v) noexcept {
     if (is_rbnil(u->parent)) {
         tree->root = v;
     } else if (u == u->parent->left) {
@@ -82,7 +84,8 @@ void transplant(Tree *tree, Node *u, Node *v) {
     }
 }
 
-void remove_fixup(Tree *tree, Node *x) {Node *w;
+void remove_fixup(Tree *tree, Node *x) noexcept {
+    Node *w;
     while (x != tree->root && x->color == BLACK) {
         if (x == x->parent->left) {
             w = x->parent->right;
@@ -145,13 +148,13 @@ void remove_fixup(Tree *tree, Node *x) {Node *w;
     x->color = BLACK;
 }
 
-Node *tree_minimum(Node *z) {
+Node *tree_minimum(Node *z) noexcept {
     for (; !is_rbnil(z->left);
            z = z->left);
     return z;
 }
 
-void remove_item(Tree *tree, Node *node) {
+void remove_item(Tree *tree, Node *node) noexcept {
     if (node->prev) {
         node->prev->next = node->next;
         if (node->next) { node->next->prev = node->prev; }
@@ -215,7 +218,7 @@ void remove_item(Tree *tree, Node *node) {
     }
 }
 
-void fix_violation(Tree *tree, Node *z) {
+void fix_violation(Tree *tree, Node *z) noexcept {
     Node *y;
 
     while (z->parent->color == RED) {
@@ -256,7 +259,7 @@ void fix_violation(Tree *tree, Node *z) {
     tree->root->color = BLACK;
 }
 
-void rotate_left(Tree *tree, Node *x) {
+void rotate_left(Tree *tree, Node *x) noexcept {
     Node *y = x->right;
     x->right = y->left;
     if (!is_rbnil(y->left)) {
@@ -274,7 +277,7 @@ void rotate_left(Tree *tree, Node *x) {
     x->parent = y;
 }
 
-void rotate_right(Tree *tree, Node *x) {
+void rotate_right(Tree *tree, Node *x) noexcept {
     struct Node *y = x->left;
     x->left = y->right;
     if (!is_rbnil(y->right)) {
@@ -294,7 +297,7 @@ void rotate_right(Tree *tree, Node *x) {
     x->parent = y;
 }
 
-Node *search(Tree *tree, size_t value) {
+Node *search(Tree *tree, size_t value) noexcept {
     Node *z = tree->root;
 
     while (!is_rbnil(z)) {
@@ -312,7 +315,7 @@ Node *search(Tree *tree, size_t value) {
     return nullptr;
 }
 
-Node *search_fitting(Tree *tree, size_t value) {
+Node *search_fitting(Tree *tree, size_t value) noexcept {
     if (tree->root == nullptr)
         return nullptr;
 
@@ -336,7 +339,7 @@ Node *search_fitting(Tree *tree, size_t value) {
     return res;
 }
 
-void print_tree(struct Tree *tree) {
+void print_tree(struct Tree *tree) noexcept {
     Node *nodes[500] = {nullptr};
     Node *nodes_next_level[500] = {nullptr};
     nodes[0] = tree->root;

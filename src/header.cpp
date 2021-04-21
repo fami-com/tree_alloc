@@ -7,15 +7,15 @@
 const size_t Header::STSIZE = aligned_sizeof<Header>();
 
 void *Header::get_body_ptr() {
-    return (char *) this + Header::STSIZE;
+    return reinterpret_cast<char*>(this) + Header::STSIZE;
 }
 
 Node *Header::get_node_ptr() {
-    return (Node *) ((char *) this + Header::STSIZE);
+    return reinterpret_cast<Node*>(reinterpret_cast<char*>(this) + Header::STSIZE);
 }
 
 Header *Header::from_body(void *body) {
-    return (struct Header *) ((char *) body - Header::STSIZE);
+    return reinterpret_cast<Header*>(reinterpret_cast<char*>(body) - Header::STSIZE);
 }
 
 Header *Header::get_next() {
@@ -23,11 +23,11 @@ Header *Header::get_next() {
         return nullptr;
     }
 
-    return (Header *) ((char *) this + m_size + Header::STSIZE);
+    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) + m_size + Header::STSIZE);
 }
 
 void *Header::get_next_uninit() {
-    return (Header *) ((char *) this + m_size + Header::STSIZE);;
+    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) + m_size + Header::STSIZE);
 }
 
 Header *Header::get_prev() {
@@ -35,7 +35,7 @@ Header *Header::get_prev() {
         return nullptr;
     }
 
-    return (Header *) ((char *) this - m_lsize - Header::STSIZE);
+    return reinterpret_cast<Header*>(reinterpret_cast<char*>(this) - m_lsize - Header::STSIZE);
 }
 
 void Header::set_lsize(size_t new_lsize) {
@@ -73,8 +73,9 @@ bool Header::is_free() const {
 Header *Header::merge_right(struct Tree *tree) {
     if (auto onxt = get_next(); onxt != nullptr && onxt->is_free()) {
         auto fin = onxt->is_final();
+        auto fre = is_free();
 
-        if (get_size() >= Node::STSIZE) {
+        if (fre && get_size() >= Node::STSIZE) {
             remove_item(tree, get_node_ptr());
         }
 
@@ -90,11 +91,7 @@ Header *Header::merge_right(struct Tree *tree) {
             nxt->set_lsize(get_size());
         }
 
-        /*if (get_prev(header)) {
-            set_next(get_prev(header), header);
-        }*/
-
-        if (get_size() >= Node::STSIZE) {
+        if (fre && get_size() >= Node::STSIZE) {
             mark_free(tree);
             //insert_item(tree, init_node(get_node_ptr(), get_size()));
         }
@@ -119,7 +116,7 @@ Header::Header(size_t size, size_t lsize, bool final, Tree *tree) {
     mark_free(tree);
 }
 
-bool Header::split_header(size_t new_size, Tree *tree) {
+bool Header::split(size_t new_size, Tree *tree) {
     new_size = align(new_size);
     auto sz = get_size();
 
@@ -165,7 +162,7 @@ bool Header::split_header(size_t new_size, Tree *tree) {
 }
 
 Header *Header::from_node(Node *node) {
-    return ((struct Header *)((char *)node - Header::STSIZE));
+    return reinterpret_cast<Header*>(reinterpret_cast<char*>(node) - Header::STSIZE);
 }
 
 bool Header::is_first() const {

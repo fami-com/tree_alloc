@@ -15,7 +15,7 @@ struct OperationResult {
     unsigned checksum;
 };
 
-void test(size_t max_size, int N);
+void test(size_t max_size, unsigned N) noexcept;
 
 }
 #endif //ALLOC_TEST_H

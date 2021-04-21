@@ -1,5 +1,5 @@
-#ifndef __RBTREE_H__
-#define __RBTREE_H__
+#ifndef ALLOC_RBTREE_H
+#define ALLOC_RBTREE_H
 
 #include <cstddef>
 
@@ -37,18 +37,18 @@ struct Tree {
     Node *root;
 };
 
-Node *init_node(Node *node_place, size_t value);
+Node *init_node(Node *node_place, size_t value) noexcept;
 
-void insert_item(Tree *tree, Node *z);
+void insert_item(Tree *tree, Node *z) noexcept;
 
-void remove_item(Tree *tree, Node *node);
+void remove_item(Tree *tree, Node *node) noexcept;
 
-Node *search_fitting(struct Tree *tree, size_t value);
+Node *search_fitting(struct Tree *tree, size_t value) noexcept;
 
-Node *search(struct Tree *tree, size_t value);
+Node *search(struct Tree *tree, size_t value) noexcept;
 
-void print_tree(struct Tree *tree);
+void print_tree(struct Tree *tree) noexcept;
 
-void print_node(struct Node *node);
+void print_node(struct Node *node) noexcept;
 
 #endif

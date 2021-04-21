@@ -46,7 +46,7 @@ public:
 
     Header *merge_left(Tree* tree);
 
-    bool split_header(size_t new_size, Tree* tree);
+    bool split(size_t new_size, Tree* tree);
 
     void mark_free(Tree *tree);
 
