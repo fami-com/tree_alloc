@@ -44,9 +44,8 @@ void test(size_t max_size, unsigned N) noexcept {
         unsigned rand_index = mt() % ARRAY_SIZE;
         OperationResult result;
 
-        if (i % N / 100 == 0) {
-            printf("%02u%%\r", i);
-            fflush(stdout);
+        if(i == N / 2) {
+            mem_dump();
         }
 
         switch (action) {

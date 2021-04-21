@@ -9,6 +9,7 @@ static_assert(__cplusplus >= 202002L, "This project requires C++20 for consteval
 
 int main() {
     test(32, N);
+    mem_dump();
     test(512, N);
     test(std::numeric_limits<unsigned short>::max(), N);
     return 0;

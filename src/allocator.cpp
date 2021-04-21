@@ -128,7 +128,9 @@ void *mem_realloc(void *ptr, size_t new_size) noexcept {
 }
 
 void mem_dump() noexcept {
-    printf("Page m_size: %zu\n", get_page_size());
+    puts("--- START MEMORY DUMP ---");
+    printf("Page size: %zu\n", get_page_size());
 
     print_tree(&tree_head);
+    puts("--- FINISH MEMORY DUMP ---");
 }
