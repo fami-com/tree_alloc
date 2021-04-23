@@ -108,15 +108,17 @@ void *mem_realloc(void *ptr, size_t new_size) noexcept {
         return ptr;
     }
 
+    void *new_ptr;
+
     if (auto prev = old_header->get_prev(); prev != nullptr && prev->is_free() &&
                                             prev->get_size() + old_size >= new_size) {
         auto hdr = old_header->merge_left(&tree_head);
         hdr->split(new_size, &tree_head);
 
         return hdr->get_body_ptr();
+    } else {
+        new_ptr = mem_alloc(new_size);
     }
-
-    void *new_ptr = mem_alloc(new_size);
 
     if (new_ptr == nullptr) {
         return nullptr;
