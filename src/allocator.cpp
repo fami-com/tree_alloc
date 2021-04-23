@@ -108,17 +108,19 @@ void *mem_realloc(void *ptr, size_t new_size) noexcept {
         return ptr;
     }
 
-    void *new_ptr;
-
     if (auto prev = old_header->get_prev(); prev != nullptr && prev->is_free() &&
                                             prev->get_size() + old_size >= new_size) {
         auto hdr = old_header->merge_left(&tree_head);
         hdr->split(new_size, &tree_head);
 
-        new_ptr = hdr->get_body_ptr();
+        return hdr->get_body_ptr();
     }
 
-    new_ptr = mem_alloc(new_size);
+    void *new_ptr = mem_alloc(new_size);
+
+    if (new_ptr == nullptr) {
+        return nullptr;
+    }
 
     memcpy(new_ptr, ptr, std::min(old_size, new_size));
 
